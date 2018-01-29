@@ -374,7 +374,7 @@ def code_gen_message(message_descriptor, env, containing_type = None):
     if containing_type:
         context('.containing_type = %s\n' % containing_type)
 
-    env.message.append('%s = protobuf.Message(%s)\n' % (full_name,
+    env.message.append('%s_pb.%s = protobuf.Message(%s)\n' % (env.filename,full_name,
                                                         obj_name))
 
     env.context.append(context.getvalue())
@@ -409,13 +409,11 @@ def code_gen_file(proto_file, env, is_gen):
     if is_gen:
         lua = Writer()
         write_header(lua)
-        lua('require "protobuf/protobuf"\n')
-        lua('local protobuf = protobuf\n')
+        lua('local protobuf = NPL.load("protobuf/protobuf.lua")\n')
         
         for i in includes:
-            lua('local %s_pb = require("%s_pb")\n' % (i, i))
-        lua("module('%s_pb')\n" % env.filename)
-
+            lua('local %s_pb = NPL.load("%s_pb.lua")\n' % (i, i))
+        lua("local %s_pb = NPL.export();\n" % env.filename)
         lua('\n\n')
         map(lua, env.descriptor)
         lua('\n')

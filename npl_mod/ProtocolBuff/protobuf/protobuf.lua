@@ -10,27 +10,28 @@ local string = string
 local tostring = tostring
 local type = type
 
-local pb = require "pb"
-require "protobuf/wire_format"
-require "protobuf/type_checkers"
-require "protobuf/encoder"
-require "protobuf/decoder"
-require "protobuf/listener"
-require "protobuf/containers"
-require "protobuf/descriptor"
-require "protobuf/text_format"
+--local pb = require "pb"
+-- require "protobuf/wire_format"
+-- require "protobuf/type_checkers"
+-- require "protobuf/encoder"
+-- require "protobuf/decoder"
+-- require "protobuf/listener"
+-- require "protobuf/containers"
+-- require "protobuf/descriptor"
+-- require "protobuf/text_format"
 
-local wire_format = wire_format
-local type_checkers = type_checkers
-local encoder = encoder
-local decoder = decoder
-local listener_mod = listener
-local containers = containers
-local descriptor = descriptor
+local wire_format = NPL.load("./wire_format.lua")
+local type_checkers = NPL.load("./type_checkers.lua")
+local encoder = NPL.load("./encoder.lua")
+local decoder = NPL.load("./decoder.lua")
+local listener_mod = NPL.load("./listener.lua")
+local containers = NPL.load("./containers.lua")
+local descriptor = NPL.load("./descriptor.lua")
 local FieldDescriptor = descriptor.FieldDescriptor
-local text_format = text_format
+local text_format = NPL.load("./text_format.lua")
 
-module("protobuf")
+--module("protobuf")
+local protobuf = NPL.export();
 
 local function make_descriptor(name, descriptor, usable_key)
     local meta = {
@@ -47,7 +48,7 @@ local function make_descriptor(name, descriptor, usable_key)
         return setmetatable({}, meta)
     end
 
-    _M[name] = setmetatable(descriptor, meta);
+    protobuf[name] = setmetatable(descriptor, meta);
 end
 
 
@@ -863,6 +864,7 @@ function _AddClassAttributesForNestedExtensions(descriptor, message_meta)
         message_meta._member[extension_name] = extension_field
     end
 end
+protobuf._AddClassAttributesForNestedExtensions = _AddClassAttributesForNestedExtensions;
 
 local function Message(descriptor)
     local message_meta = {}
@@ -909,5 +911,5 @@ local function Message(descriptor)
     return ns 
 end
 
-_M.Message = Message
+protobuf.Message = Message
 

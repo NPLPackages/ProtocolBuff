@@ -1,6 +1,7 @@
-module "descriptor"
+--module "descriptor"
+local descriptor = NPL.export();
 
-FieldDescriptor = {
+descriptor.FieldDescriptor = {
     TYPE_DOUBLE         = 1,
     TYPE_FLOAT          = 2,
     TYPE_INT64          = 3,

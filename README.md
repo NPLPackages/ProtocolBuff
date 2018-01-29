@@ -1,4 +1,4 @@
-# ProtocolBuffSample
+# ProtocolBuff
 Transports the google protocol buffer in NPL
 ### protoc-gen-lua
  - https://github.com/sean-lin/protoc-gen-lua
@@ -18,12 +18,12 @@ buildProto.bat
 ```
 ### Test codes
 ```lua
--- activated pb state
-NPL.call("protocol/pb.cpp", {});
 -- add search path
 ParaIO.AddSearchPath("npl_packages/ProtocolBuff/npl_mod/ProtocolBuff");
+-- activated pb state
+NPL.call("protocol/pb.cpp", {});
 
-NPL.load("samples/person_pb.lua");
+local person_pb = NPL.load("samples/person_pb.lua");
 local msg = person_pb.Person()
 msg.id = 100
 msg.name = "foo"

@@ -3,11 +3,11 @@ local table = table
 local ipairs = ipairs
 local assert =assert
 
-local pb = require "pb"
-require "protobuf/wire_format"
-local wire_format = wire_format
+--local pb = require "pb"
+local wire_format = NPL.load("./wire_format.lua")
 
-module "encoder"
+--module "encoder"
+local encoder = NPL.export();
 
 function _VarintSize(value)
     if value <= 0x7f then return 1 end
@@ -16,6 +16,7 @@ function _VarintSize(value)
     if value <= 0xfffffff then return 4 end
     return 5 
 end
+encoder._VarintSize = _VarintSize;
 
 function _SignedVarintSize(value)
     if value < 0 then return 10 end
@@ -25,10 +26,12 @@ function _SignedVarintSize(value)
     if value <= 0xfffffff then return 4 end
     return 5
 end
+encoder._SignedVarintSize = _SignedVarintSize;
 
 function _TagSize(field_number)
   return _VarintSize(wire_format.PackTag(field_number, 0))
 end
+encoder._TagSize = _TagSize;
 
 function _SimpleSizer(compute_value_size)
     return function(field_number, is_repeated, is_packed)
@@ -57,6 +60,7 @@ function _SimpleSizer(compute_value_size)
         end
     end
 end
+encoder._SimpleSizer = _SimpleSizer;
 
 function _ModifiedSizer(compute_value_size, modify_value)
     return function (field_number, is_repeated, is_packed)
@@ -85,6 +89,7 @@ function _ModifiedSizer(compute_value_size, modify_value)
         end
     end
 end
+encoder._ModifiedSizer = _ModifiedSizer;
 
 function _FixedSizer(value_size)
     return function (field_number, is_repeated, is_packed)
@@ -108,6 +113,7 @@ function _FixedSizer(value_size)
         end
     end
 end
+encoder._FixedSizer = _FixedSizer;
 
 Int32Sizer = _SimpleSizer(_SignedVarintSize)
 Int64Sizer = Int32Sizer
@@ -128,6 +134,21 @@ SFixed64Sizer = Fixed64Sizer
 DoubleSizer = Fixed64Sizer
 
 BoolSizer = _FixedSizer(1)
+
+encoder.Int32Sizer =Int32Sizer;
+encoder.Int64Sizer = Int64Sizer;
+encoder.EnumSizer = EnumSizer;
+encoder.UInt32Sizer = UInt32Sizer;
+encoder.UInt64Sizer = UInt64Sizer;
+encoder.SInt32Sizer = SInt32Sizer;
+encoder.SInt64Sizer = SInt64Sizer;
+encoder.Fixed32Sizer = Fixed32Sizer;
+encoder.SFixed32Sizer = SFixed32Sizer;
+encoder.FloatSizer = FloatSizer;
+encoder.Fixed64Sizer = Fixed64Sizer;
+encoder.SFixed64Sizer = SFixed64Sizer;
+encoder.DoubleSizer = DoubleSizer;
+encoder.BoolSizer = BoolSizer;
 
 
 function StringSizer(field_number, is_repeated, is_packed)
@@ -150,6 +171,7 @@ function StringSizer(field_number, is_repeated, is_packed)
         end
     end
 end
+encoder.StringSizer = StringSizer;
 
 function BytesSizer(field_number, is_repeated, is_packed)
     local tag_size = _TagSize(field_number)
@@ -171,6 +193,7 @@ function BytesSizer(field_number, is_repeated, is_packed)
         end
     end
 end
+encoder.BytesSizer = BytesSizer;
 
 function MessageSizer(field_number, is_repeated, is_packed)
     local tag_size = _TagSize(field_number)
@@ -192,6 +215,7 @@ function MessageSizer(field_number, is_repeated, is_packed)
         end
     end
 end
+encoder.MessageSizer = MessageSizer;
 
 
 -- ====================================================================
@@ -209,10 +233,12 @@ function _VarintBytes(value)
     _EncodeSignedVarint(write, value)
     return table.concat(out)
 end
+encoder._VarintBytes = _VarintBytes;
 
 function TagBytes(field_number, wire_type)
   return _VarintBytes(wire_format.PackTag(field_number, wire_type))
 end
+encoder.TagBytes = TagBytes;
 
 function _SimpleEncoder(wire_type, encode_value, compute_value_size)
     return function(field_number, is_repeated, is_packed)
@@ -247,6 +273,7 @@ function _SimpleEncoder(wire_type, encode_value, compute_value_size)
         end
     end
 end
+encoder._SimpleEncoder = _SimpleEncoder;
 
 function _ModifiedEncoder(wire_type, encode_value, compute_value_size, modify_value)
     return function (field_number, is_repeated, is_packed)
@@ -281,6 +308,7 @@ function _ModifiedEncoder(wire_type, encode_value, compute_value_size, modify_va
         end
     end
 end
+encoder._ModifiedEncoder = _ModifiedEncoder;
 
 function _StructPackEncoder(wire_type, value_size, format)
     return function(field_number, is_repeated, is_packed)
@@ -313,6 +341,7 @@ function _StructPackEncoder(wire_type, value_size, format)
 
     end
 end
+encoder._StructPackEncoder = _StructPackEncoder;
 
 Int32Encoder = _SimpleEncoder(wire_format.WIRETYPE_VARINT, _EncodeSignedVarint, _SignedVarintSize)
 Int64Encoder = Int32Encoder
@@ -335,6 +364,20 @@ SFixed32Encoder = _StructPackEncoder(wire_format.WIRETYPE_FIXED32, 4, string.byt
 SFixed64Encoder = _StructPackEncoder(wire_format.WIRETYPE_FIXED64, 8, string.byte('q'))
 FloatEncoder    = _StructPackEncoder(wire_format.WIRETYPE_FIXED32, 4, string.byte('f'))
 DoubleEncoder   = _StructPackEncoder(wire_format.WIRETYPE_FIXED64, 8, string.byte('d'))
+
+encoder.Int32Encoder = Int32Encoder;
+encoder.Int64Encoder = Int64Encoder;
+encoder.EnumEncoder = EnumEncoder;
+encoder.UInt32Encoder = UInt32Encoder;
+encoder.UInt64Encoder = UInt64Encoder;
+encoder.SInt32Encoder = SInt32Encoder;
+encoder.SInt64Encoder = SInt64Encoder;
+encoder.Fixed32Encoder = Fixed32Encoder;
+encoder.Fixed64Encoder = Fixed64Encoder;
+encoder.SFixed32Encoder = SFixed32Encoder;
+encoder.SFixed64Encoder = SFixed64Encoder;
+encoder.FloatEncoder = FloatEncoder;
+encoder.DoubleEncoder = DoubleEncoder;
 
 
 function BoolEncoder(field_number, is_repeated, is_packed)
@@ -377,6 +420,7 @@ function BoolEncoder(field_number, is_repeated, is_packed)
         end
     end
 end
+encoder.BoolEncoder = BoolEncoder;
 
 function StringEncoder(field_number, is_repeated, is_packed)
     local tag = TagBytes(field_number, wire_format.WIRETYPE_LENGTH_DELIMITED)
@@ -400,6 +444,7 @@ function StringEncoder(field_number, is_repeated, is_packed)
         end
     end
 end
+encoder.StringEncoder = StringEncoder;
 
 function BytesEncoder(field_number, is_repeated, is_packed)
     local tag = TagBytes(field_number, wire_format.WIRETYPE_LENGTH_DELIMITED)
@@ -421,6 +466,7 @@ function BytesEncoder(field_number, is_repeated, is_packed)
         end
     end
 end
+encoder.BytesEncoder = BytesEncoder;
 
 
 function MessageEncoder(field_number, is_repeated, is_packed)
@@ -443,4 +489,5 @@ function MessageEncoder(field_number, is_repeated, is_packed)
         end
     end
 end
+encoder.MessageEncoder = MessageEncoder;
 

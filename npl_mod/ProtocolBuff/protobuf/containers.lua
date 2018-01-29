@@ -3,7 +3,8 @@ local table = table
 local rawset = rawset
 local error = error
 
-module "containers"
+local containers = NPL.export();
+--module "containers"
 
 local _RCFC_meta = {
     add = function(self)
@@ -26,8 +27,9 @@ local _RCFC_meta = {
     end
 }
 _RCFC_meta.__index = _RCFC_meta
+containers._RCFC_meta = _RCFC_meta;
 
-function RepeatedCompositeFieldContainer(listener, message_descriptor)
+function containers.RepeatedCompositeFieldContainer(listener, message_descriptor)
     local o = {
         _listener = listener,
         _message_descriptor = message_descriptor
@@ -50,8 +52,9 @@ local _RSFC_meta = {
     end
 }
 _RSFC_meta.__index = _RSFC_meta
+containers._RSFC_meta = _RSFC_meta;
 
-function RepeatedScalarFieldContainer(listener, type_checker)
+function containers.RepeatedScalarFieldContainer(listener, type_checker)
     local o = {}
     o._listener = listener
     o._type_checker = type_checker

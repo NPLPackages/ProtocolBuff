@@ -2,8 +2,10 @@ local type = type
 local error = error
 local string = string
 
-module "type_checkers"
-function TypeChecker(acceptable_types)
+--module "type_checkers"
+local type_checkers = NPL.export();
+
+function type_checkers.TypeChecker(acceptable_types)
     local acceptable_types = acceptable_types
 
     return function(proposed_value)
@@ -15,7 +17,7 @@ function TypeChecker(acceptable_types)
     end
 end
 
-function Int32ValueChecker()
+function type_checkers.Int32ValueChecker()
     local _MIN = -2147483648
     local _MAX = 2147483647
     return function(proposed_value)
@@ -29,7 +31,7 @@ function Int32ValueChecker()
     end
 end
 
-function Uint32ValueChecker(IntValueChecker)
+function type_checkers.Uint32ValueChecker(IntValueChecker)
     local _MIN = 0
     local _MAX = 0xffffffff
 
@@ -44,7 +46,7 @@ function Uint32ValueChecker(IntValueChecker)
     end
 end
 
-function UnicodeValueChecker()
+function type_checkers.UnicodeValueChecker()
     return function (proposed_value)
         if type(proposed_value) ~= 'string' then
             error(string.format('%s has type %s, but expected one of: string', proposed_value, type(proposed_value)))

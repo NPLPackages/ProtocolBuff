@@ -5,14 +5,15 @@ local ipairs = ipairs
 local error = error
 local print = print
 
-local pb = require "pb"
-require "protobuf/encoder"
-require "protobuf/wire_format"
+--local pb = require "pb"
+--require "protobuf/encoder"
+--require "protobuf/wire_format"
 
-local encoder = encoder
-local wire_format = wire_format
+local encoder = NPL.load("./encoder.lua")
+local wire_format = NPL.load("./wire_format.lua")
 
-module "decoder"
+--module "decoder"
+local decoder = NPL.export();
 
 local _DecodeVarint = pb.varint_decoder
 local _DecodeSignedVarint = pb.signed_varint_decoder
@@ -21,6 +22,7 @@ local _DecodeVarint32 = pb.varint_decoder
 local _DecodeSignedVarint32 = pb.signed_varint_decoder
 
 ReadTag = pb.read_tag
+decoder.ReadTag = ReadTag;
 
 local function _SimpleDecoder(wire_type, decode_value)
     return function(field_number, is_repeated, is_packed, key, new_default)
@@ -128,8 +130,22 @@ DoubleDecoder   = _StructPackDecoder(wire_format.WIRETYPE_FIXED64, 8, string.byt
 
 BoolDecoder = _ModifiedDecoder(wire_format.WIRETYPE_VARINT, _DecodeVarint, _Boolean)
 
+decoder.Int32Decoder = Int32Decoder;
+decoder.EnumDecoder = EnumDecoder;
+decoder.Int64Decoder = Int64Decoder;
+decoder.UInt32Decoder = UInt32Decoder;
+decoder.UInt64Decoder = UInt64Decoder;
+decoder.SInt32Decoder = SInt32Decoder;
+decoder.SInt64Decoder = SInt64Decoder;
+decoder.Fixed32Decoder = Fixed32Decoder;
+decoder.Fixed64Decoder = Fixed64Decoder;
+decoder.SFixed32Decoder = SFixed32Decoder;
+decoder.SFixed64Decoder = SFixed64Decoder;
+decoder.FloatDecoder = FloatDecoder;
+decoder.DoubleDecoder = DoubleDecoder;
+decoder.BoolDecoder = BoolDecoder;
 
-function StringDecoder(field_number, is_repeated, is_packed, key, new_default)
+function decoder.StringDecoder(field_number, is_repeated, is_packed, key, new_default)
     local DecodeVarint = _DecodeVarint
     local sub = string.sub
     --    local unicode = unicode
@@ -171,7 +187,7 @@ function StringDecoder(field_number, is_repeated, is_packed, key, new_default)
     end
 end
 
-function BytesDecoder(field_number, is_repeated, is_packed, key, new_default)
+function decoder.BytesDecoder(field_number, is_repeated, is_packed, key, new_default)
     local DecodeVarint = _DecodeVarint
     local sub = string.sub
     assert(not is_packed)
@@ -212,7 +228,7 @@ function BytesDecoder(field_number, is_repeated, is_packed, key, new_default)
     end
 end
 
-function MessageDecoder(field_number, is_repeated, is_packed, key, new_default)
+function decoder.MessageDecoder(field_number, is_repeated, is_packed, key, new_default)
     local DecodeVarint = _DecodeVarint
     local sub = string.sub
 
@@ -263,10 +279,10 @@ function MessageDecoder(field_number, is_repeated, is_packed, key, new_default)
     end
 end
 
-function _SkipVarint(buffer, pos, pend)
+function decoder._SkipVarint(buffer, pos, pend)
 end
 
-function _SkipFixed64(buffer, pos, pend)
+function decoder._SkipFixed64(buffer, pos, pend)
     pos = pos + 8
     if pos > pend then 
         error('Truncated message.')
@@ -274,7 +290,7 @@ function _SkipFixed64(buffer, pos, pend)
     return pos
 end
 
-function _SkipLengthDelimited(buffer, pos, pend)
+function decoder._SkipLengthDelimited(buffer, pos, pend)
     local size
     size, pos = _DecodeVarint(buffer, pos)
     pos = pos + size
@@ -284,7 +300,7 @@ function _SkipLengthDelimited(buffer, pos, pend)
     return pos
 end
 
-function _SkipFixed32(buffer, pos, pend)
+function decoder._SkipFixed32(buffer, pos, pend)
     pos = pos + 4
     if pos > pend then
         error('Truncated message.')
@@ -292,11 +308,11 @@ function _SkipFixed32(buffer, pos, pend)
     return pos
 end
 
-function _RaiseInvalidWireType(buffer, pos, pend)
+function decoder._RaiseInvalidWireType(buffer, pos, pend)
     error('Tag had invalid wire type.')
 end
 
-function _FieldSkipper()
+function decoder._FieldSkipper()
     WIRETYPE_TO_SKIPPER = {
         _SkipVarint,
         _SkipFixed64,
@@ -318,4 +334,4 @@ function _FieldSkipper()
     end
 end
 
-SkipField = _FieldSkipper()
+decoder.SkipField = decoder._FieldSkipper()
